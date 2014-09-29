@@ -1,4 +1,10 @@
 '''
+Created on Sep 18, 2014
+
+@author: Matthew
+'''
+
+'''
 Version 1.0 
 September 1, 2014
 
@@ -31,12 +37,10 @@ from javax.swing import BorderFactory
 from javax.swing import JMenu
 from javax.swing import JMenuBar
 from javax.swing import JMenuItem
-from javax.swing import JPopupMenu
 from javax.swing import JDialog
 from javax.swing import JOptionPane
 from javax.swing import JFileChooser
 from javax.swing.filechooser import FileNameExtensionFilter
-from javax.swing import SwingUtilities
 
 from java.awt import Point
 from java.awt import Color
@@ -53,14 +57,12 @@ from java.awt.event import MouseListener
 from java.awt.event import MouseMotionListener
 
 #import os
-import java.io as io
-import org.python.util as util
 
 ########
 ## The SGOMS-Related model stuff
 ########
 
-class PlanningUnit(io.Serializable):
+class PlanningUnit:
     '''An SGOMS Planning Unit that contains a set of firing conditions, behaviours, and a list of Unit Tasks'''
 
     def __init__(self, theID="PlanningUnit", theFiringConditions=None, theBehaviour=None, theUnitTaskList=None):
@@ -143,7 +145,7 @@ class PlanningUnit(io.Serializable):
         else:
             print "(PlanningUnit.printBehaviours)", self.ID, " has no behaviour"
     
-class UnitTask(io.Serializable):
+class UnitTask:
     '''An SGOMS Unit Task that contains a set of firing conditions, behaviours, and a list of Methods'''
     
     def __init__(self, theID="Unit Task", theFiringConditions=None, theBehaviour=None, theMethodList = None):
@@ -199,9 +201,8 @@ class UnitTask(io.Serializable):
         '''Prints the ID of each method in the method list'''
         
         if len(self.methodList) > 0:
-            print "(UnitTask.printMethodList)", self.ID, "has", str(len(self.methodList)), "methods:"
             for method in self.methodList:
-                print method.ID
+                print "(UnitTask.printMethodList)", method.ID
         else:
             print "(UnitTask.printMethodList()) ", self.ID, " has no methods"
             
@@ -223,7 +224,7 @@ class UnitTask(io.Serializable):
         else:
             print "(UnitTask.printBehaviours)", self.ID, " has no behaviour"
             
-class Method(io.Serializable):
+class Method:
     '''An SGOMS Method that contains a set of firing conditions, behaviours, and a list of Operators'''
     
     def __init__(self, theID="Method", theFiringConditions=None, theBehaviour=None, theOperatorList = None):
@@ -305,7 +306,7 @@ class Method(io.Serializable):
         else:
             print "(Method.printBehaviours)", self.ID, " has no behaviour"
 
-class Operator(io.Serializable):
+class Operator:
     '''An SGOMS Operator that contains a set of firing conditions and behaviours'''
     
     def __init__(self, theID="Operator", theFiringConditions=None, theBehaviour=None):
@@ -361,7 +362,7 @@ class Operator(io.Serializable):
         else:
             print "(Operator.printBehaviours)", self.ID, " has no behaviour"
 
-class PUxUTRelation(io.Serializable):
+class PUxUTRelation:
     '''Represents the relationship between a PlanningUnit and a UnitTask, 
     including the location of the UnitTask within the PlanningUnit
     
@@ -452,7 +453,7 @@ class PUxUTRelation(io.Serializable):
                         
         print "(PUxUTRelation.updateDM_string) new DM_string:", self.DM_string
 
-class UTxMRelation(io.Serializable):
+class UTxMRelation:
     '''Represents the relationship between a UnitTask and a Method
     
     Similar in concept to the PUxUTRelation; see above
@@ -494,7 +495,7 @@ class UTxMRelation(io.Serializable):
             
         print "(UTxMRelation.updateTuppleID) new ID:", self.tuppleID
         
-class MxORelation(io.Serializable):
+class MxORelation:
     '''Represents the relationship between a Method and Operator
     
     Similar in concept to the PUxUTRelation and the UTxMRelation; see above
@@ -539,7 +540,7 @@ class MxORelation(io.Serializable):
         
 ##### The Model #####
         
-class SGOMS_Model(io.Serializable):
+class SGOMS_Model:
     '''The underlying model that the GUI interacts with
     
     Essentially serves as the middle man between the GUI and the ACT-R output function
@@ -1072,7 +1073,7 @@ class SGOMS_Model(io.Serializable):
 # The GUI model classes (i.e. the GUI back-end related stuff)
 #######
 
-class Node(io.Serializable):
+class Node:
     '''Defines the default inheritable behaviour of a model node. 
     Nodes by themselves are not used in the GUI (although they could be); only their subclasses are
     The entire GUI consists basically of nodes and edges'''
@@ -1749,7 +1750,6 @@ class PUNode(Node):
          
     def updatePU(self):
         '''Updates the PUNode, based on which nodes are connected to it
-        Makes sure the label of the PUNode corresponds to the ID of the planningUnit
         Adds the UT of each connected UTNode to the PU's list of UTs
         
         This basically resets the PU contents each time it is called
@@ -1757,9 +1757,6 @@ class PUNode(Node):
         The function is primarily concerned with connecting UTNodes to PUNodes'''
         
         print "(PUNode: ",self.label,".updatePU)"
-        
-        ## Update the label of the PUNode
-        self.label = self.planningUnit.ID
         
         ## Clear the list and repopulate on each update
         del self.planningUnit.unitTaskList[:]
@@ -1797,7 +1794,7 @@ class PUNode(Node):
         
         # Draw a label at the top right corner of the node
         aPen.setColor(Color.black)
-        aPen.drawString(self.planningUnit.ID, self.location.x + int(PUNode.WIDTH/2), self.location.y - int(PUNode.HEIGHT/2))
+        aPen.drawString(self.label, self.location.x + int(PUNode.WIDTH/2), self.location.y - int(PUNode.HEIGHT/2))
         
 class UTNode(Node):
     '''Specifies the behaviour/appearance of a UTNode
@@ -1918,7 +1915,6 @@ class UTNode(Node):
     
     def updateUT(self):
         '''Updates the UTNode, based on which nodes are connected to it
-        Makes sure the label of the UTNode corresponds to the ID of the UnitTask
         Adds the Method of each connected MNode to the UT's list of Methods
         
         This basically resets the UT contents each time it is called
@@ -1926,9 +1922,6 @@ class UTNode(Node):
         The function is primarily concerned with connecting MNodes to UTNodes'''
         
         print "(UTNode: ",self.label,".updateUT)"
-        
-        ## Update the label of the UTNode
-        self.label = self.pUxUTRelation.unitTask.ID
         
         ## I believe this is the syntax for clearing a list in python
         del self.pUxUTRelation.unitTask.methodList[:]
@@ -2130,16 +2123,12 @@ class MNode(Node):
             
     def updateMethod(self):
         '''Updates the MNode, based on which nodes are connected to it
-        Makes sure the label of the MNode corresponds to the ID of the Method
         Adds the Operator of each connected ONode to the Method's list of Operators
         
         This basically resets the Method's contents each time it is called
         The function is primarily concerned with connecting MNodes to ONodes'''
         
         print "(MNode: ",self.label,".updateMethod)"
-        
-        ## Update the label
-        self.label = self.uTxMRelation.method.ID
         
         ## I believe this is the syntax for clearing a list in python
         del self.uTxMRelation.method.operatorList[:]
@@ -2291,15 +2280,11 @@ class ONode(Node):
     def updateRelation(self):
         '''Updates self.mxORelation based on the node's distance to the MNode root
         
-        Makes sure the label of the ONode corresponds to the ID of the Operator
         Sets the relation's Method to be that of the closest connected MNode, none if there is no connected MNode
         Sets the relation's location to be hops to closest MNode - 1, 0 if there is no connected MNode
         '''
         
         #FDO print "(ONode: ", self.label, ".updateRelation)"
-        
-        ## Update the label
-        self.label = self.mxORelation.operator.ID
         
         root = self.getClosestNodeType("MNode")     
         
@@ -2338,7 +2323,7 @@ class ONode(Node):
         #", loc:" + str(self.mxORelation.location) 
         aPen.drawString(self.mxORelation.operator.ID, self.location.x + self.RADIUS, self.location.y - self.RADIUS)
 
-class Edge(io.Serializable):
+class Edge:
     '''Defines the model edge (i.e. the line that connects two nodes on the graph)'''
     
     def __init__(self, theStartNode, theEndNode, theLabel=None):
@@ -2411,7 +2396,7 @@ class Edge(io.Serializable):
         print self.startNode.label, "(", self.startNode.location.x, ",", self.startNode.location.y, ")", \
         " --> ", self.endNode.label, "(", self.endNode.location.x, ",", self.endNode.location.y, ")"
        
-class Graph(io.Serializable):
+class Graph:
     '''Defines a collection of Nodes, Edges, and their behaviour'''
     
     def __init__(self, theLabel = "Graph", theNodes = None, theSGOMS_Model = None):
@@ -2835,44 +2820,9 @@ class Graph(io.Serializable):
             node.draw(aPen)
             
     def printGraph(self):
-        '''Prints the graph, including all of the nodes'''
+        '''Prints the graph in the form of label(# of nodes, # of edges)'''
         
-        print "@@@@@ Graph.printGraph @@@@@"
         print self.label, "(", len(self.nodes), ",", len(self.returnEdges()), ")"
-        for node in self.nodes:
-            print node
-            
-        print "@@@@@ Graph.printGraph Completed @@@@@"
-        
-    def saveTo(self, theFileName):
-        '''Saves the graph to a selected file'''
-        
-        ## This is taken from http://www.onlamp.com/pub/a/python/2002/04/11/jythontips.html?page=2
-        print "(Graph.saveTo) Saving to file:", theFileName
-        
-        outFile = io.FileOutputStream(theFileName)
-        outStream = io.ObjectOutputStream(outFile)
-        outStream.writeObject(self)
-        outFile.close()
-        
-        print "(Graph.saveTo) Save complete"
-        
-    def loadFrom(self, theFileName):
-        '''Loads a graph from a selected file'''
-        
-        print "(Graph.loadFrom) Loading from file:", theFileName
-        
-        ## This is taken from http://www.onlamp.com/pub/a/python/2002/04/11/jythontips.html?page=2
-        inFile = io.FileInputStream(theFileName)
-        inStream = util.PythonObjectInputStream(inFile) ## Note Python Utilities use; different from standard Java IO
-        
-        newGraph = inStream.readObject()
-        print "(Graph.loadFrom) Printing graph"
-        newGraph.printGraph()
-        
-        print "(Graph.loadFrom) Returning new graph"
-        return newGraph
-        
         
 #####
 ## The GUI front-end related stuff (the view/controller classes)
@@ -3123,7 +3073,7 @@ class SGOMSDialog(JDialog):
         theTitle specifies the title of the pop-up window
         isModal specifies whether the window must be dealt with before other actions can happen 
         (True = must be dealt with)
-        theSGOMSUnit is the generic object that will be modified by the dialog (i.e. a PlanningUnit, UnitTask, Method, or Operator)
+        theSGOMSUnit is the generic object that will be modified by the dialog (i.e. a PlanningUnit, UnitTask, Method, or Operator
         thePoint should be the point where you want the new node to be located, it should be a Point'''
         
         print "SGOMSDialog Initiated"
@@ -3213,8 +3163,6 @@ class SGOMSDialog(JDialog):
         ## The first text entry is the name, the next five are the firing conditions, the next five are the behaviours
         self.sGOMSUnit.ID = self.sGOMSDialogPanel.nameEntry.getText()  ## Set the ID
         
-        ## Reset the firingConditions, and repopulate them with what is in the text entries
-        del self.sGOMSUnit.firingConditions[:]        
         for textEntry in self.sGOMSDialogPanel.firingConditionTextEntries:
             textVar = textEntry.getText()
             if textVar == "":   ## Don't append empty strings to the firing conditions 
@@ -3222,14 +3170,12 @@ class SGOMSDialog(JDialog):
             else:            
                 self.sGOMSUnit.firingConditions.append(textVar)  ## Add the firing conditions set in the text entries
         
-        ## Reset the behaviours, and repopulate them with what is in the text entries
-        del self.sGOMSUnit.behaviour[:]
         for textEntry in self.sGOMSDialogPanel.behaviourTextEntries:
             textVar = textEntry.getText()
             if textVar == "":   ## Don't append empty strings to the behaviours 
                 pass
             else:            
-                self.sGOMSUnit.behaviour.append(textVar)  ## Add the behaviours set in the text entries
+                self.sGOMSUnit.behaviour.append(textVar)  ## Add the firing conditions set in the text entries
         
         self.owner.dialogFinished(self.sGOMSUnit, self.point)
         print "SGOMSDialog disposed"
@@ -3242,64 +3188,7 @@ class SGOMSDialog(JDialog):
         self.owner.dialogCancelled()
         print "SGOMSDialog disposed"
         self.dispose()
-
-class SGOMSEditDialog(SGOMSDialog):
-    '''The dialog that comes up when you edit an existing SGOMS node
-    
-    Essentially identical to SGOMSDialog, but has different behaviour when 'ok' is pressed,
-    No new node is created, but the edited SGOMSUnit is updated'''
-    
-    def __init__(self, theOwner = None, theTitle = "Edit SGOMS Unit", isModal = True, theSGOMSUnit = None, thePoint = None):
-        '''Initializes the SGOMSEditDialog
-        
-        theOwner is the client application that caused the dialog to open, must be a Frame of some sort (i.e. GraphEditorFrame)
-        theTitle specifies the title of the pop-up window
-        isModal specifies whether the window must be dealt with before other actions can happen 
-        (True = must be dealt with)
-        theSGOMSUnit is the generic object that will be modified by the dialog (i.e. a PlanningUnit, UnitTask, Method, or Operator)
-        thePoint should be the point where you want the new node to be located, it should be a Point'''
-        
-        print "SGOMSEditDialog Initiating..."
-        
-        super(SGOMSEditDialog, self).__init__(theOwner, theTitle, isModal, theSGOMSUnit, thePoint)
-        
-        print "...SGOMSEditDialog Initiated"
-        
-    def okButtonPressed(self, event):
-        '''Defines what happens when the ok button is pressed
-        
-        Modifies the SGOMSUnit, based on the info entered into the dialog box,
-        (e.g. adds name, behaviour, and firing conditions)
-        and passes the SGOMSUnit to the owner frame via the method owner.editDialogFinished'''
-        
-        print "(SGOMSEditDialog.okButtonPressed())"
-        
-        ##theID="Unit Task", theFiringConditions=None, theBehaviour=None):
-        ## The first text entry is the name, the next five are the firing conditions, the next five are the behaviours
-        self.sGOMSUnit.ID = self.sGOMSDialogPanel.nameEntry.getText()  ## Set the ID
-        
-        ## Reset the firingConditions, and repopulate them with what is in the text entries
-        del self.sGOMSUnit.firingConditions[:]        
-        for textEntry in self.sGOMSDialogPanel.firingConditionTextEntries:
-            textVar = textEntry.getText()
-            if textVar == "":   ## Don't append empty strings to the firing conditions 
-                pass
-            else:            
-                self.sGOMSUnit.firingConditions.append(textVar)  ## Add the firing conditions set in the text entries
-        
-        ## Reset the behaviours, and repopulate them with what is in the text entries
-        del self.sGOMSUnit.behaviour[:]
-        for textEntry in self.sGOMSDialogPanel.behaviourTextEntries:
-            textVar = textEntry.getText()
-            if textVar == "":   ## Don't append empty strings to the behaviours 
-                pass
-            else:            
-                self.sGOMSUnit.behaviour.append(textVar)  ## Add the behaviours set in the text entries
-        
-        self.owner.editDialogFinished(self.sGOMSUnit)
-        print "SGOMSDialog disposed"
-        self.dispose()
-
+     
 class GraphEditorPanel(JPanel, MouseListener, MouseMotionListener, KeyListener):
     '''The main drawing panel for the user interface'''
     
@@ -3334,15 +3223,6 @@ class GraphEditorPanel(JPanel, MouseListener, MouseMotionListener, KeyListener):
         ## Sets the border to be a loweredBevelBorder
         self.setBorder(BorderFactory.createLoweredBevelBorder())
         
-        ## Add popup menus to the panel to handle right-clicking
-        self.popupMenu = JPopupMenu()
-        self.editItem = JMenuItem("Edit Node", actionPerformed=self.onEditNode)
-        self.popupMenu.add(self.editItem)
-        
-        ## Global variable to handle right-clicking and editing nodes
-        ## Stores the node that was right-clicked on for later editing
-        self.editNode = None
-        
         #self.setLayout(None)
         #self.setSize(600, 400)
         
@@ -3364,10 +3244,9 @@ class GraphEditorPanel(JPanel, MouseListener, MouseMotionListener, KeyListener):
         self.removeKeyListener(self)
             
     def mouseClicked(self, event):
-        '''Defines what happens when the mouse is double-clicked, or right clicked
+        '''Defines what happens when the mouse is double-clicked
         
-        Either selects a Node or Edge, or creates a new kind of Node (if double-clicked)
-        Brings up a popup menu for editing nodes if right-clicked on a Node'''
+        Either selects a Node or Edge, or creates a new kind of Node'''
         
         ## On a double-click
         if (event.getClickCount() == 2):
@@ -3405,9 +3284,9 @@ class GraphEditorPanel(JPanel, MouseListener, MouseMotionListener, KeyListener):
                     anEdge.toggleSelected() ##If the click happened near an edge, select it
             else:   ## If there was a node that was clicked, select it
                 aNode.toggleSelected()
-                            
-        # We have changed the model, so now we update the graph
-        self.update()
+                
+            # We have changed the model, so now we update the graph
+            self.update()
             
     def mousePressed(self, event):
         '''Defines what happens when the mouse is pressed
@@ -3476,14 +3355,6 @@ class GraphEditorPanel(JPanel, MouseListener, MouseMotionListener, KeyListener):
         if aNode != None and aNode != self.dragNode:
             self.graph.addEdge(self.dragNode, aNode);
         
-        ## Handle right-clicking by bringing up a popup menu to edit the Node selected
-        ## Only provide a popup menu if the release was on top of a Node                
-        if SwingUtilities.isRightMouseButton(event):
-            if isinstance(aNode, Node):
-                print "!!!!!!! Right-Click Detected, isRightMouseButton, mouseReleased !!!!!"
-                self.editNode = aNode
-                self.popupMenu.show(event.getComponent(), event.getX(), event.getY())
-        
         ##Refresh the panel either way
         self.dragNode = None
         self.update()
@@ -3504,38 +3375,6 @@ class GraphEditorPanel(JPanel, MouseListener, MouseMotionListener, KeyListener):
                 #FDO for node in self.graph.nodes:
                     #FDO print node.label
             self.update()       
-    
-    def onEditNode(self, event):
-        '''Specifies what happens when the 'edit node' popup menu item is clicked on
-        
-        Brings up an SGOMSEditDialog whose fields are filled in by the contents of the SGOMS Node
-        so that they can be edited'''
-        
-        print "!!!!!!!!!!!!! (GraphEditorPanel.onEditNode) Edit node pressed !!!!!!!!!!!!!!!!!"
-        
-        #theSource = event.getSource()
-        #theComponent = theSource.getComponent()
-        #print theSource
-        #print theComponent
-        #theNode = self.graph.nodeAt(event.getSource().getPoint())
-        
-        if isinstance(self.editNode, PUNode):
-            sGOMSUnit = self.editNode.planningUnit
-        
-        if isinstance(self.editNode, UTNode):
-            sGOMSUnit = self.editNode.pUxUTRelation.unitTask
-            
-        if isinstance(self.editNode, MNode):
-            sGOMSUnit = self.editNode.uTxMRelation.method
-            
-        if isinstance(self.editNode, ONode):
-            sGOMSUnit = self.editNode.mxORelation.opearator
-            
-        ## theOwner = None, theTitle = "Create New SGOMS Node", isModal = True, theSGOMSUnit = None, thePoint = None
-        dialog = SGOMSEditDialog(self.frame, "Edit SGOMS Node", True, sGOMSUnit, self.editNode.location)
-        
-        ## Reset the editNode at the end of the function
-        self.editNode = None
     
     def paintComponent(self, aPen):
         '''This is the method responsible for displaying the graph
@@ -3588,7 +3427,7 @@ class GraphEditorFrameButtonPanel(JPanel):
             self.graph = Graph()
         else:
             self.graph = aGraph
-            #self.setBackground(Color.white)
+            self.setBackground(Color.white)
         
         ## Store the owner frame
         self.frame = aFrame
@@ -3663,9 +3502,7 @@ class GraphEditorFrameButtonPanel(JPanel):
                   
         
 class GraphEditorFrame(JFrame, DialogClientInterface):
-    '''A view which holds a GraphEditorPanel, a GraphEditorFrameButtonPanel, and a few menu items
-    This is the main frame that the GUI is comprised of
-    '''
+    '''A view which holds a GraphEditorPanel, a GraphEditorFrameButtonPanel, and a few menu items'''
     
     def __init__(self, theTitle = "Title", theGraph = None):
         '''Initializes the GraphEditorFrame
@@ -3703,23 +3540,12 @@ class GraphEditorFrame(JFrame, DialogClientInterface):
         ## The file menu
         fileMenu = JMenu("File")
         
-        ## The Export to ACT-R  Menu Item
         fileExport = JMenuItem("Export To ACT-R",
             actionPerformed=self.exportToACTR)
+        
         fileExport.setToolTipText("Convert Current Graph Into an ACT-R Readable Model")
+
         fileMenu.add(fileExport)
-        
-        ## The save to file Menu Item
-        fileSave = JMenuItem("Save As",
-                             actionPerformed=self.saveGraph)
-        fileSave.setToolTipText("Save current model to a selected file")
-        fileMenu.add(fileSave)
-        
-        ## The load from file Menu Item
-        fileLoad = JMenuItem("Load",
-                             actionPerformed=self.loadGraph)
-        fileLoad.setToolTipText("Load a model from a selected file")
-        fileMenu.add(fileLoad)
 
         ## The help menu
         menubar.add(fileMenu)
@@ -3770,23 +3596,6 @@ class GraphEditorFrame(JFrame, DialogClientInterface):
         if isinstance(theSGOMSUnit, Operator):
             self.graph.addONodeAdvancedNew(theSGOMSUnit, thePoint)
             self.editor.update()
-            
-        self.graph.printGraph()
-        self.graph.sGOMS.printModelContentsAdvanced()
-            
-    def editDialogFinished(self, theSGOMSUnit):
-        '''Specifies what to do when an SGOMSEditDialog dialog box ends successfully
-        updates the editor
-        
-        theSGOMSUnit should be a PlanningUnit, UnitTask, Method, or Operator
-        '''
-        
-        self.graph.update()
-        self.editor.update()
-        print "(GraphEditorFrame.editDialogFinished)"
-        
-        self.graph.printGraph()
-        self.graph.sGOMS.printModelContentsAdvanced()
         
     def dialogCancelled(self):
         '''Specifies the behaviour for closing the dialog box when data should be discarded
@@ -3822,64 +3631,6 @@ class GraphEditorFrame(JFrame, DialogClientInterface):
         
         else:
             print "(GraphEditorFrame.exportToACTR) dialog cancelled"
-            
-    def saveGraph(self, event):
-        '''The event handler for the file -> save function
-        
-        Saves the contents of the graph to a selected file
-        calls self.graph.saveTo(file)'''
-        
-        chooseFile = JFileChooser()
-        theFilter = FileNameExtensionFilter(".txt", ["txt"])
-        chooseFile.addChoosableFileFilter(theFilter)
-
-        ret = chooseFile.showDialog(self, "Save As")
-
-        if ret == JFileChooser.APPROVE_OPTION:
-            theFile = chooseFile.getSelectedFile()
-            theFileName = theFile.getCanonicalPath()
-            
-            print "(GraphEditorFrame.saveGraph) Selected Path = ", theFileName
-        
-            self.graph.saveTo(theFileName)
-        
-        else:
-            print "(GraphEditorFrame.saveGraph) dialog cancelled"      
-        
-    def loadGraph(self, event):
-        '''The event handler for the file -> load function
-        
-        Loads the contents of the graph from a selected file
-        calls self.graph.loadFrom(file)
-        Updates the GraphEditorFrame and GraphEditorPanel to display the new graph'''
-        
-        chooseFile = JFileChooser()
-        theFilter = FileNameExtensionFilter(".txt", ["txt"])
-        chooseFile.addChoosableFileFilter(theFilter)
-
-        ret = chooseFile.showDialog(self, "Load")
-
-        if ret == JFileChooser.APPROVE_OPTION:
-            theFile = chooseFile.getSelectedFile()
-            theFileName = theFile.getCanonicalPath()
-            
-            #FDO print "(GraphEditorFrame.exportToACTR), theFile =", theFile
-            print "(GraphEditorFrame.loadGraph) Selected Path = ", theFileName
-        
-            newGraph = self.graph.loadFrom(theFileName) ## Returns the loaded graph
-            
-            print"(GraphEditorFrame.loadGraph) printing graph and SGOMS Model:"
-            newGraph.printGraph()
-            newGraph.sGOMS.printModelContentsAdvanced()
-            
-            print "(GraphEditorFrame.loadGraph) setting new Graph"
-            self.graph = newGraph
-            self.editor.graph = newGraph
-        
-        else:
-            print "(GraphEditorFrame.loadGraph) dialog cancelled"
-                
-        self.editor.update()
         
     def moreInformationSelected(self, event):
         '''Brings up a window providing more information about the GUI
@@ -3896,11 +3647,8 @@ class GraphEditorFrame(JFrame, DialogClientInterface):
 
 ## Code that runs the GUI
 
-#map1 = Graph("SGOMS Test")
-#frame = GraphEditorFrame("SGOMS_GUI_1.1", map1)
-
 map1 = Graph("SGOMS Test")
-frame = GraphEditorFrame("SGOMS_GUI_1.2", map1)
+frame = GraphEditorFrame("SGOMS_GUI_1.0", map1)
 
 
 #print frame.graph
