@@ -1,6 +1,6 @@
 '''
-Version 1.3 
-October 17, 2014
+Version 1.4 
+November 13, 2014
 
 @author: Matt Martin (https://github.com/mattmartin256)
 
@@ -18,13 +18,13 @@ West, R. L., & Somner, S. (2011) Scaling up from Micro Cognition to Macro Cognit
 This project was funded in part by a grant from Natural Sciences and Engineering Research Council of Canada,
 under the supervision of Dr. R. L. West, at Carleton University, Ottawa.
 
-New for Verson 1.3 (compared to 1.0):
+New for Verson 1.4 (compared to 1.0):
 
 Edit node function (version 1.1)
 File --> Save As / Load function (version 1.2)
 Larger Firing Condition and Behaviour slots (version 1.3)
 
-Future code:
+Version 1.4:
 File --> Save function (no need to select each time)
 Copy/Paste node
 '''
@@ -2456,6 +2456,10 @@ class Graph(io.Serializable):
         ## Store a variable to represent whether to create a new PU, UT, Method, or Operator
         ## Valid options: "PLANNING_UNIT", "UNIT_TASK", "METHOD", "OPERATOR"
         self.selectedSGOMSType = None
+        
+        ## Store a filename for the save function (so don't have to select location each time)
+        ## Set by the loadFrom function and saveAs function
+        self.saveFile = None
              
     
     def __str__(self):
@@ -2863,26 +2867,64 @@ class Graph(io.Serializable):
             
         print "@@@@@ Graph.printGraph Completed @@@@@"
         
-    def saveTo(self, theFileName):
-        '''Saves the graph to a selected file'''
+    def save(self):
+        '''Saves the graph to self.saveFile'''
         
         ## This is taken from http://www.onlamp.com/pub/a/python/2002/04/11/jythontips.html?page=2
-        print "(Graph.saveTo) Saving to file:", theFileName
+        print "(Graph.save) Saving to self.saveFile:", self.saveFile
         
-        outFile = io.FileOutputStream(theFileName)
-        outStream = io.ObjectOutputStream(outFile)
-        outStream.writeObject(self)
-        outFile.close()
+        if self.saveFile == None:
+            print "XXX (Graph.save) Save not completed - self.saveFile is None XXX"
+            return False
         
-        print "(Graph.saveTo) Save complete"
+        else:
+            outFile = io.FileOutputStream(self.saveFile)
+            outStream = io.ObjectOutputStream(outFile)
+            outStream.writeObject(self)
+            outFile.close()
+        
+        print "(Graph.save) Save complete"
+        return True
+        
+    def saveAs(self, theFileName):
+        '''Saves the graph to a selected file passed in by the Java save dialog box
+        Sets self.saveFile to be theFileName
+        
+        theFileName should be a string (a FileName)
+        '''
+        
+        ## Update the save location for the save function
+        self.saveFile = theFileName
+        print "(Graph.saveAs) theFileName = ", theFileName, " self.saveFile (after updating) =", self.saveFile
+        
+        ## This is taken from http://www.onlamp.com/pub/a/python/2002/04/11/jythontips.html?page=2
+        print "(Graph.saveAs) Saving to saveFile:", self.saveFile
+        
+        if self.saveFile == None:
+            print "XXX (Graph.saveAs) Save not completed - self.saveFile is None XXX"
+            return False
+        
+        else:
+            outFile = io.FileOutputStream(self.saveFile)
+            outStream = io.ObjectOutputStream(outFile)
+            outStream.writeObject(self)
+            outFile.close()
+        
+        print "(Graph.saveAs) Save complete"
+        return True
         
     def loadFrom(self, theFileName):
-        '''Loads a graph from a selected file'''
+        '''Loads a graph from a selected file
+        sets self.saveFile to be theFileName
         
-        print "(Graph.loadFrom) Loading from file:", theFileName
+        theFileName should be a string (a FileName)'''
+        
+        self.saveFile = theFileName
+        
+        print "(Graph.loadFrom) saveFile set; Loading from file:", self.saveFile
         
         ## This is taken from http://www.onlamp.com/pub/a/python/2002/04/11/jythontips.html?page=2
-        inFile = io.FileInputStream(theFileName)
+        inFile = io.FileInputStream(self.saveFile)
         inStream = util.PythonObjectInputStream(inFile) ## Note Python Utilities use; different from standard Java IO
         
         newGraph = inStream.readObject()
@@ -3733,10 +3775,16 @@ class GraphEditorFrame(JFrame, DialogClientInterface):
         fileExport.setToolTipText("Convert Current Graph Into an ACT-R Readable Model")
         fileMenu.add(fileExport)
         
-        ## The save to file Menu Item
-        fileSave = JMenuItem("Save As",
-                             actionPerformed=self.saveGraph)
-        fileSave.setToolTipText("Save current model to a selected file")
+        ## The Save As Menu Item
+        fileSaveAs = JMenuItem("Save As",
+                             actionPerformed=self.saveAs)
+        fileSaveAs.setToolTipText("Save current model to a selected file")
+        fileMenu.add(fileSaveAs)
+        
+        ## The Save Menu Item
+        fileSave = JMenuItem("Save",
+                             actionPerformed=self.save)
+        fileSave.setToolTipText("Save current model")
         fileMenu.add(fileSave)
         
         ## The load from file Menu Item
@@ -3846,12 +3894,24 @@ class GraphEditorFrame(JFrame, DialogClientInterface):
         
         else:
             print "(GraphEditorFrame.exportToACTR) dialog cancelled"
-            
-    def saveGraph(self, event):
+    
+    def save(self, event):
         '''The event handler for the file -> save function
         
+        Saves the contents of the graph to the default save file (set by graph.saveAs or graph.loadFrom)
+        calls self.graph.save()
+        '''
+        
+        print "(GraphEditorFrame.save)"
+        
+        self.graph.save()   ## Returns false if save not completed, true if complete
+        
+    
+    def saveAs(self, event):
+        '''The event handler for the file -> Save As function
+        
         Saves the contents of the graph to a selected file
-        calls self.graph.saveTo(file)'''
+        calls self.graph.saveAs(file)'''
         
         chooseFile = JFileChooser()
         theFilter = FileNameExtensionFilter(".txt", ["txt"])
@@ -3863,12 +3923,12 @@ class GraphEditorFrame(JFrame, DialogClientInterface):
             theFile = chooseFile.getSelectedFile()
             theFileName = theFile.getCanonicalPath()
             
-            print "(GraphEditorFrame.saveGraph) Selected Path = ", theFileName
+            print "(GraphEditorFrame.saveAs) Selected Path = ", theFileName
         
-            self.graph.saveTo(theFileName)
+            self.graph.saveAs(theFileName)
         
         else:
-            print "(GraphEditorFrame.saveGraph) dialog cancelled"      
+            print "(GraphEditorFrame.saveAs) dialog cancelled"      
         
     def loadGraph(self, event):
         '''The event handler for the file -> load function
@@ -3896,6 +3956,7 @@ class GraphEditorFrame(JFrame, DialogClientInterface):
             newGraph.printGraph()
             newGraph.sGOMS.printModelContentsAdvanced()
             
+            ## The frame and editor window need to point to the new graph
             print "(GraphEditorFrame.loadGraph) setting new Graph"
             self.graph = newGraph
             self.editor.graph = newGraph
